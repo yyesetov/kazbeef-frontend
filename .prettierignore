@@ -1,0 +1,10 @@
+dist/
+coverage/
+node_modules/
+package-lock.json
+# сторонние скиллы агента: не наш код
+.claude/
+.agents/
+skills-lock.json
+# конфиги nginx: Prettier не знает их формат и склеивает строки
+nginx/

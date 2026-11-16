@@ -1,0 +1,12 @@
+# Интерфейс KazBeef отдельно от бэкенда. Бэкенд запускается из своего проекта.
+services:
+  frontend:
+    build: .
+    restart: unless-stopped
+    environment:
+      # Адрес бэкенда, как его видит контейнер. По умолчанию — бэкенд на этой же машине, порт 8080.
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:8080}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - '${FRONTEND_PORT:-3000}:80'

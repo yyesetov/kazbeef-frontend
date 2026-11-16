@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+
+# локальные настройки и секреты
+.env
+.env.local
+.env.*.local
+
+# редакторы и ОС
+.idea/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,478 @@
+/*
+ * Оформление KazBeef. Три цветовых смысла, которые не пересекаются:
+ *   бордовый (--kb-brand, --kb-rail) — оболочка: меню, кнопки, фокус;
+ *   синий (--kb-series-1)            — данные на графиках и карте;
+ *   красный/оранжевый/жёлтый/зелёный — только уровень риска (см. theme.ts).
+ * Светлая и тёмная схемы подобраны отдельно; значения графиков продублированы в theme.ts (useChartTheme).
+ */
+:root {
+  --kb-font-display: 'Montserrat Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --kb-page: #f3f1ee;
+  --kb-surface: #ffffff;
+  --kb-ink: #1f1b1a;
+  --kb-ink-2: #5a5450;
+  --kb-muted: #756e68;
+  --kb-grid: #e9e5e0;
+  --kb-axis: #d0cac3;
+  --kb-border: rgba(31, 27, 26, 0.11);
+  --kb-brand: #8c2628;
+  --kb-rail: #8c2628;
+  --kb-series-1: #2a78d6;
+  --kb-track: #e9eef5;
+}
+[data-mantine-color-scheme='dark'] {
+  --kb-page: #161413;
+  --kb-surface: #211e1d;
+  --kb-ink: #f2eeea;
+  --kb-ink-2: #c7c0b9;
+  --kb-muted: #9a938c;
+  --kb-grid: #322e2c;
+  --kb-axis: #403b38;
+  --kb-border: rgba(255, 255, 255, 0.1);
+  --kb-brand: #d98c8e;
+  --kb-rail: #451416;
+  --kb-series-1: #3987e5;
+  --kb-track: #25292f;
+}
+
+body {
+  background: var(--kb-page);
+  color: var(--kb-ink);
+}
+
+/* ---------- Боковая панель: единственное «громкое» место интерфейса ---------- */
+
+.kb-rail {
+  background: var(--kb-rail);
+  border: 0;
+  color: #fff;
+}
+.kb-rail-logo {
+  display: block;
+  width: 128px;
+  height: auto;
+}
+.kb-rail-section {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  padding: 0 10px;
+  margin: 18px 0 4px;
+}
+.kb-navlink {
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--kb-font-display);
+  font-weight: 500;
+}
+.kb-navlink:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+.kb-navlink[aria-current='page'],
+.kb-navlink[aria-current='page']:hover {
+  background: rgba(255, 255, 255, 0.17);
+  color: #fff;
+  font-weight: 600;
+}
+.kb-navlink:focus-visible,
+.kb-rail-action:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.kb-rail-user {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+.kb-rail-action {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+}
+.kb-rail-action:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Шапка на узком экране — продолжение той же панели */
+.kb-topbar {
+  background: var(--kb-rail);
+  border: 0;
+  color: #fff;
+}
+.kb-topbar-mark {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+.kb-topbar-name {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.kb-page-title {
+  font-family: var(--kb-font-display);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--kb-ink);
+  margin: 0;
+}
+
+/* ---------- Карточки ---------- */
+
+.kb-card {
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.kb-card-title {
+  font-family: var(--kb-font-display);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--kb-ink);
+}
+.kb-card-sub {
+  font-size: 12.5px;
+  color: var(--kb-muted);
+}
+
+/* Фильтры на узком экране: поля встают ровной сеткой в две колонки вместо «лесенки» разной ширины.
+   !important перекрывает ширину, заданную полям для широкого экрана */
+@media (max-width: 47.99em) {
+  .kb-filters .mantine-InputWrapper-root {
+    flex: 1 1 calc(50% - 6px);
+    width: auto !important;
+    min-width: 132px;
+  }
+}
+
+/* Показатели: одна полоса с делениями вместо шести одинаковых карточек */
+.kb-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--kb-grid);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+@media (min-width: 48em) {
+  .kb-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 75em) {
+  .kb-stats {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+.kb-stat {
+  background: var(--kb-surface);
+  padding: 14px 16px;
+  min-width: 0;
+}
+.kb-stat-label {
+  font-size: 12.5px;
+  color: var(--kb-ink-2);
+}
+.kb-stat-value {
+  font-family: var(--kb-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--kb-ink);
+}
+.kb-stat-hint {
+  font-size: 12.5px;
+  color: var(--kb-muted);
+}
+
+/* ---------- Ранжированные полосы ---------- */
+
+.kb-bars {
+  display: grid;
+  grid-template-columns: minmax(90px, 38%) 1fr auto;
+  gap: 8px 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.kb-bars-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--kb-ink);
+}
+.kb-bars-track {
+  height: 14px;
+  position: relative;
+}
+.kb-bars-fill {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--kb-series-1);
+  border-radius: 0 4px 4px 0;
+}
+.kb-bars-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--kb-ink-2);
+  text-align: right;
+}
+/* Строка занимает всю ширину и наследует колонки родителя: это настоящий элемент (в отличие от
+   display: contents), поэтому кнопка-строка получает фокус с клавиатуры и видимую рамку */
+.kb-bars-row {
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-column: 1 / -1;
+  align-items: center;
+  cursor: default;
+  /* сброс вида кнопки */
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  border-radius: 4px;
+}
+.kb-bars-row > span {
+  display: block;
+}
+.kb-bars-row.clickable {
+  cursor: pointer;
+}
+.kb-bars-row:hover .kb-bars-fill,
+.kb-bars-row:focus-visible .kb-bars-fill {
+  filter: brightness(1.12);
+}
+
+/* Видимый фокус для всего, что нажимается с клавиатуры */
+.kb-bars-row:focus-visible,
+.kb-list-item:focus-visible,
+.kb-row:focus-visible,
+.kb-th-sort:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+
+/* Элемент списка-кнопки (последние сообщения) */
+.kb-list-item {
+  display: block;
+  width: 100%;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* ---------- Тепловая таблица ---------- */
+
+.kb-heat {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 12.5px;
+  width: 100%;
+}
+.kb-heat th {
+  font-weight: 500;
+  color: var(--kb-ink-2);
+  text-align: left;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+.kb-heat thead th {
+  text-align: center;
+}
+.kb-heat td {
+  text-align: center;
+  padding: 6px 4px;
+  border-radius: 4px;
+  font-variant-numeric: tabular-nums;
+  min-width: 44px;
+}
+.kb-heat td.empty {
+  color: var(--kb-muted);
+  background: transparent;
+}
+
+/* ---------- Таблицы ---------- */
+
+.kb-row {
+  cursor: pointer;
+}
+.kb-num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kb-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+/* Заголовки колонок — тише данных: вторичный цвет, обычный вес */
+.mantine-Table-th {
+  color: var(--kb-ink-2);
+  font-weight: 500;
+  font-size: 12.5px;
+}
+
+.kb-pre {
+  background: var(--kb-page);
+  border: 1px solid var(--kb-border);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- Карта ---------- */
+
+.leaflet-container {
+  border-radius: 8px;
+  font-family: inherit;
+  background: var(--kb-page);
+}
+.kb-cluster {
+  background: var(--kb-surface);
+  color: var(--kb-ink);
+  border: 2px solid var(--kb-series-1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+.kb-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12.5px;
+  color: var(--kb-ink-2);
+}
+.kb-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.kb-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  flex: none;
+}
+.kb-swatch.round {
+  border-radius: 50%;
+}
+
+/* Подложка OpenStreetMap: приглушена, чтобы точки данных оставались главным; в тёмной теме инвертирована */
+.kb-map .leaflet-tile-pane {
+  filter: saturate(0.35) brightness(1.04);
+}
+.kb-map-dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) saturate(0.3) brightness(0.9) contrast(0.9);
+}
+/* свой контекст наложения: слои карты не должны перекрывать выезжающую карточку и меню */
+.kb-map .leaflet-container {
+  isolation: isolate;
+  z-index: 0;
+}
+
+/* Метки статуса не сжимаются и не обрезаются в узких ячейках */
+.mantine-Badge-root {
+  flex-shrink: 0;
+  overflow: visible;
+}
+.mantine-Badge-label {
+  overflow: visible;
+}
+
+/* ---------- Вход ---------- */
+
+.kb-login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+}
+.kb-login-brand {
+  background: var(--kb-rail);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px 24px;
+  text-align: center;
+}
+.kb-login-logo {
+  width: min(190px, 46vw);
+  height: auto;
+}
+.kb-login-purpose {
+  font-family: var(--kb-font-display);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
+  max-width: 26ch;
+  /* строки выравниваются по длине: последнее слово не повисает в одиночестве */
+  text-wrap: balance;
+  color: rgba(255, 255, 255, 0.86);
+  margin: 0;
+}
+.kb-login-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+.kb-login-form form {
+  width: 100%;
+  max-width: 340px;
+}
+.kb-login-title {
+  font-family: var(--kb-font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.2;
+  margin: 0;
+}
+@media (min-width: 48em) {
+  .kb-login {
+    grid-template-columns: minmax(300px, 42%) 1fr;
+    grid-template-rows: 1fr;
+  }
+  .kb-login-logo {
+    width: min(300px, 62%);
+  }
+  .kb-login-purpose {
+    font-size: 17px;
+  }
+}

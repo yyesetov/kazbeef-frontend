@@ -1,0 +1,39 @@
+# ${BACKEND_URL} подставляется при старте контейнера. Переменные nginx ($host, $uri и т. д.) остаются как есть.
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Данные и админка — на бэкенд. Браузер видит один origin, поэтому cookie сессии и CSRF работают без CORS.
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        include /etc/nginx/conf.d/proxy.inc;
+    }
+    location /admin/ {
+        proxy_pass ${BACKEND_URL};
+        include /etc/nginx/conf.d/proxy.inc;
+    }
+
+    # Файлы сборки содержат хэш в имени: кешируются навсегда
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # Клиентские маршруты (/map, /events, ...) отдают index.html; сам он не кешируется, чтобы новая сборка подхватывалась сразу
+    location / {
+        add_header Cache-Control "no-cache";
+        try_files $uri $uri/ /index.html;
+    }
+}
