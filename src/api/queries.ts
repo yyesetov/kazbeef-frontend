@@ -13,6 +13,11 @@ export const queryKeys = {
   collectors: ['admin', 'collectors'] as const,
   system: ['admin', 'system'] as const,
   adminDiseases: ['admin', 'diseases'] as const,
+  kbFormats: ['admin', 'kb', 'formats'] as const,
+  kbDocuments: ['admin', 'kb', 'documents'] as const,
+  kbMarkdown: (id: number) => ['admin', 'kb', 'markdown', id] as const,
+  kbQuestions: (unanswered: boolean) => ['admin', 'kb', 'questions', unanswered] as const,
+  chatStatus: ['chat-status'] as const,
 };
 
 /** Текущий пользователь; null — не вошёл. Остальные сбои (сеть, 5xx) остаются ошибкой запроса. */

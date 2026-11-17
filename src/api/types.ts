@@ -221,3 +221,40 @@ export type DiseaseUpdate = {
   synonyms: string[];
   speciesIds: number[];
 };
+
+// ---------- база знаний (/admin/kb/**) ----------
+
+export type KbStatus = 'processing' | 'ready' | 'failed';
+
+export type KbDocument = {
+  id: number;
+  originalName: string;
+  format: string;
+  originalSize: number;
+  title: string;
+  summary: string | null;
+  tags: string[];
+  status: KbStatus;
+  error: string | null;
+  markdownSize: number | null;
+  chars: number | null;
+  chunks: number | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type KbDocumentUpdate = { title: string; summary: string; tags: string[] };
+
+export type KbFormats = { extensions: string[]; maxFileSizeMb: number };
+
+/** Ответ загрузки по каждому файлу: принят (есть id) или отклонён с причиной. */
+export type KbUploadResult = { name: string; id?: number; status: KbStatus | 'rejected'; error?: string };
+
+export type KbQuestion = {
+  id: number;
+  askedAt: string;
+  question: string;
+  found: boolean;
+  /** JSON-массив идентификаторов документов строкой */
+  documentIds: string;
+};

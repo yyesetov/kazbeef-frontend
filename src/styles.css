@@ -53,11 +53,36 @@ body {
   width: 128px;
   height: auto;
 }
+/* Заголовок раздела меню — кнопка: раздел «Управление» сворачивается */
 .kb-rail-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  font: inherit;
   font-size: 12px;
+  text-align: left;
   color: rgba(255, 255, 255, 0.62);
-  padding: 0 10px;
-  margin: 18px 0 4px;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  padding: 4px 10px 4px 6px;
+  margin: 14px 0 2px;
+  cursor: pointer;
+}
+.kb-rail-section:hover {
+  color: #fff;
+}
+.kb-rail-section:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.kb-rail-chevron {
+  flex: none;
+  transition: transform 150ms ease;
+}
+.kb-rail-chevron[data-open] {
+  transform: rotate(90deg);
 }
 .kb-navlink {
   border-radius: 8px;
@@ -474,5 +499,894 @@ body {
   }
   .kb-login-purpose {
     font-size: 17px;
+  }
+}
+
+/* ---------- Markdown: ответы чата и документы базы знаний ---------- */
+
+.kb-md {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--kb-ink);
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.kb-md > :first-child {
+  margin-top: 0;
+}
+.kb-md > :last-child {
+  margin-bottom: 0;
+}
+.kb-md p,
+.kb-md ul,
+.kb-md ol,
+.kb-md blockquote,
+.kb-md pre,
+.kb-md-table {
+  margin: 0 0 0.65em;
+}
+.kb-md ul,
+.kb-md ol {
+  padding-left: 1.3em;
+}
+.kb-md li + li {
+  margin-top: 0.2em;
+}
+.kb-md h1,
+.kb-md h2,
+.kb-md h3,
+.kb-md h4,
+.kb-md h5,
+.kb-md h6 {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 1em 0 0.45em;
+}
+.kb-md h1 {
+  font-size: 1.3em;
+}
+.kb-md h2 {
+  font-size: 1.18em;
+}
+.kb-md h3 {
+  font-size: 1.06em;
+}
+.kb-md h4,
+.kb-md h5,
+.kb-md h6 {
+  font-size: 1em;
+}
+.kb-md a {
+  color: var(--kb-brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.kb-md code {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--kb-grid);
+  border-radius: 4px;
+  padding: 0.1em 0.3em;
+}
+.kb-md pre {
+  background: var(--kb-page);
+  border: 1px solid var(--kb-border);
+  border-radius: 8px;
+  padding: 10px;
+  overflow-x: auto;
+}
+.kb-md pre code {
+  background: none;
+  padding: 0;
+}
+.kb-md blockquote {
+  border-left: 3px solid var(--kb-axis);
+  padding-left: 10px;
+  color: var(--kb-ink-2);
+}
+.kb-md hr {
+  border: 0;
+  border-top: 1px solid var(--kb-border);
+  margin: 1em 0;
+}
+/* Широкая таблица прокручивается внутри своего блока и не растягивает узкую панель */
+.kb-md-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.kb-md table {
+  border-collapse: collapse;
+  font-size: 0.92em;
+  min-width: 100%;
+}
+.kb-md th,
+.kb-md td {
+  border: 1px solid var(--kb-axis);
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.kb-md th {
+  background: var(--kb-page);
+  font-weight: 600;
+}
+/* Мигающий курсор в конце печатающегося ответа */
+.kb-md-streaming > :last-child::after {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: -0.15em;
+  background: var(--kb-ink-2);
+  animation: kb-blink 1s steps(2, start) infinite;
+}
+@keyframes kb-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* ---------- Чат ---------- */
+
+.kb-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--kb-page);
+  color: var(--kb-ink);
+}
+.kb-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 10px 16px;
+  background: var(--kb-surface);
+  border-bottom: 1px solid var(--kb-border);
+  flex: none;
+}
+.kb-chat-avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--mantine-primary-color-filled);
+  color: #fff;
+}
+.kb-chat-title {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.25;
+}
+.kb-chat-subtitle {
+  font-size: 12px;
+  color: var(--kb-muted);
+}
+.kb-chat-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.kb-chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px 16px 16px;
+}
+.kb-chat-row {
+  display: flex;
+}
+.kb-chat-row.user {
+  justify-content: flex-end;
+}
+.kb-chat-bubble {
+  border-radius: 14px;
+  padding: 9px 13px;
+  max-width: 88%;
+  min-width: 0;
+}
+.kb-chat-bubble.user {
+  background: var(--mantine-primary-color-filled);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.kb-chat-bubble.assistant {
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-bottom-left-radius: 4px;
+  width: 100%;
+}
+.kb-chat-bubble.not-found .kb-md {
+  color: var(--kb-muted);
+}
+.kb-chat-notfound-icon {
+  color: var(--kb-muted);
+  flex: none;
+  margin-top: 2px;
+}
+.kb-chat-note {
+  font-size: 12px;
+  color: var(--kb-muted);
+  margin-top: 6px;
+}
+.kb-chat-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--kb-border);
+}
+.kb-chat-sources-label {
+  font-size: 12px;
+  color: var(--kb-muted);
+}
+.kb-chat-source {
+  max-width: 100%;
+  cursor: default;
+}
+.kb-chat-source .mantine-Badge-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kb-chat-source:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 1px;
+}
+.kb-chat-thinking {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: 14px;
+  color: var(--kb-muted);
+}
+.kb-chat-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 4px;
+}
+.kb-chat-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: kb-dot 1.2s ease-in-out infinite;
+}
+.kb-chat-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.kb-chat-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes kb-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+.kb-chat-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+}
+.kb-chat-examples {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.kb-chat-example {
+  appearance: none;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  color: var(--kb-ink);
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.kb-chat-example:hover:not(:disabled) {
+  border-color: var(--kb-brand);
+  color: var(--kb-brand);
+}
+.kb-chat-example:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.kb-chat-example:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-chat-jump {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.kb-chat-footer {
+  flex: none;
+  padding: 10px 12px;
+  background: var(--kb-surface);
+  border-top: 1px solid var(--kb-border);
+}
+.kb-chat-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.kb-chat-input {
+  flex: 1;
+  min-width: 0;
+}
+.kb-chat-counter {
+  font-size: 12px;
+  color: var(--kb-muted);
+  margin-top: 4px;
+  text-align: right;
+}
+.kb-chat-counter.over {
+  color: var(--mantine-color-error);
+}
+
+/* Плавающая кнопка и всплывающая панель. Над картой (Leaflet до 1000 внутри своего isolation-контекста)
+   и над шапкой AppShell, но под модальными окнами и уведомлениями Mantine */
+.kb-chat-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 190;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+.kb-chat-popup {
+  position: fixed;
+  right: 20px;
+  bottom: 84px;
+  z-index: 190;
+  width: 400px;
+  height: min(600px, calc(100dvh - 104px));
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--kb-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+@media (max-width: 640px) {
+  .kb-chat-fab {
+    right: 14px;
+    bottom: 14px;
+  }
+  .kb-chat-popup {
+    inset: 0;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    border: 0;
+    z-index: 210;
+  }
+}
+/* Место под плавающей кнопкой: пагинация и последние строки таблиц не уходят под неё */
+.kb-fab-space {
+  padding-bottom: 72px;
+}
+
+/* Публичная страница чата */
+.kb-chat-page {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--kb-page);
+}
+.kb-chat-page-bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  height: 52px;
+  background: var(--kb-rail);
+  color: #fff;
+}
+.kb-chat-page-bar a {
+  color: #fff;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.kb-chat-page-bar a:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+.kb-chat-page-bar a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.kb-chat-page-main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+}
+@media (min-width: 48em) {
+  .kb-chat-page-main {
+    padding: 16px 16px 20px;
+  }
+  .kb-chat-page-main .kb-chat {
+    border: 1px solid var(--kb-border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+}
+
+/* ---------- База знаний ---------- */
+
+.kb-dropzone {
+  border: 1.5px dashed var(--kb-axis);
+  border-radius: 10px;
+  background: var(--kb-surface);
+  padding: 20px 16px;
+}
+.kb-dropzone[data-accept] {
+  border-color: var(--kb-brand);
+}
+.kb-dropzone[data-reject] {
+  border-color: var(--mantine-color-error);
+}
+.kb-mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 12.5px;
+}
+
+/* ---------- Видеомониторинг ---------- */
+
+/* Полоса на четыре показателя: без пустых ячеек на широком экране */
+@media (min-width: 75em) {
+  .kb-stats.kb-stats-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (min-width: 48em) and (max-width: 74.99em) {
+  .kb-stats.kb-stats-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Помещения: плитки-вкладки, точка — состояние помещения */
+.kb-rooms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.kb-room {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  color: var(--kb-ink);
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.kb-room:hover {
+  border-color: var(--kb-axis);
+}
+.kb-room[data-active] {
+  border-color: var(--kb-brand);
+  box-shadow: inset 0 0 0 1px var(--kb-brand);
+}
+.kb-room:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-room-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 14px;
+}
+.kb-room-meta {
+  font-size: 12px;
+  color: var(--kb-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kb-room-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.kb-room-dot.ok {
+  background: #0ca30c;
+}
+.kb-room-dot.offline {
+  background: #898781;
+}
+.kb-room-dot.notice {
+  background: #fab219;
+}
+.kb-room-dot.violation {
+  background: #ec835a;
+}
+.kb-room-dot.gross {
+  background: #d03b3b;
+  box-shadow: 0 0 0 3px rgba(208, 59, 59, 0.25);
+  animation: kb-pulse 1.6s ease-in-out infinite;
+}
+@keyframes kb-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(208, 59, 59, 0);
+  }
+}
+
+/* Камера: экран 16:9 и подпись. Рамка окрашивается по уровню текущего нарушения */
+.kb-cam {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  padding: 0;
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.kb-cam.large {
+  cursor: default;
+}
+.kb-cam:hover:not(.large) {
+  border-color: var(--kb-axis);
+}
+.kb-cam:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-cam.alert.gross {
+  border-color: #d03b3b;
+  box-shadow: 0 0 0 1px #d03b3b;
+}
+.kb-cam.alert.violation {
+  border-color: #ec835a;
+}
+.kb-cam.alert.notice {
+  border-color: #fab219;
+}
+.kb-cam-screen {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #17191c;
+  color: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+.kb-cam-screen video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.kb-cam-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  /* лёгкая сетка, чтобы пустой экран читался как кадр камеры, а не как ошибка вёрстки */
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.kb-cam-live,
+.kb-cam-ai {
+  position: absolute;
+  top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.kb-cam-live {
+  left: 8px;
+}
+.kb-cam-live::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2fc56b;
+}
+.kb-cam-live.off::before {
+  background: #898781;
+}
+.kb-cam-ai {
+  right: 8px;
+}
+.kb-cam-alert {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  padding: 6px 10px;
+}
+.kb-cam-alert span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kb-cam-alert.gross {
+  background: rgba(208, 59, 59, 0.92);
+}
+.kb-cam-alert.violation {
+  background: rgba(214, 105, 60, 0.92);
+}
+.kb-cam-alert.notice {
+  background: rgba(196, 138, 8, 0.92);
+}
+.kb-cam-caption {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  min-width: 0;
+}
+.kb-cam-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kb-cam-meta {
+  font-size: 12px;
+  color: var(--kb-muted);
+}
+
+/* Журнал и правила: журнал шире, правила — колонкой справа; на узком экране друг под другом */
+.kb-video-bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 75em) {
+  .kb-video-bottom {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  }
+}
+/* ---------- Путь продукции ---------- */
+
+/* Этапы — лента слева направо со стрелками; на узком экране прокручивается по горизонтали */
+.kb-flow {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.kb-flow-cell {
+  display: flex;
+  align-items: center;
+  flex: 1 0 136px;
+  min-width: 136px;
+}
+.kb-flow-arrow {
+  flex: none;
+  color: var(--kb-axis);
+  margin: 0 1px;
+}
+.kb-stage {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  color: var(--kb-ink);
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  padding: 10px 11px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+}
+.kb-stage:hover {
+  border-color: var(--kb-axis);
+}
+.kb-stage[data-active] {
+  border-color: var(--kb-brand);
+  box-shadow: inset 0 0 0 1px var(--kb-brand);
+}
+.kb-stage.problem {
+  border-top: 3px solid #d03b3b;
+}
+.kb-stage:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-stage-step {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kb-muted);
+}
+.kb-stage-name {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.25;
+  min-height: 2.5em;
+}
+.kb-stage-count {
+  font-family: var(--kb-font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.kb-stage-count small {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--kb-muted);
+}
+.kb-stage-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+.kb-stage-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--kb-ink-2);
+  background: var(--kb-page);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.kb-stage-tag.bad {
+  color: #fff;
+  background: #d03b3b;
+}
+.kb-stage-tag.warn {
+  color: #fff;
+  background: #d6693c;
+}
+
+.kb-qr-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Камеры: название, график за 3 часа с полосой нормы, текущая температура */
+.kb-room-temp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--kb-border);
+}
+.kb-room-temp:first-child {
+  border-top: 0;
+}
+.kb-room-temp-value {
+  min-width: 74px;
+  text-align: right;
+  font-family: var(--kb-font-display);
+  font-weight: 700;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+.kb-room-temp.bad .kb-room-temp-value {
+  color: #d03b3b;
+}
+.kb-spark {
+  flex: none;
+}
+.kb-spark-band {
+  fill: var(--kb-track);
+}
+.kb-spark-line {
+  stroke: var(--kb-series-1);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.kb-room-temp.bad .kb-spark-line {
+  stroke: #d03b3b;
+}
+
+.kb-lot-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  font-size: 13px;
+  align-items: center;
+}
+.kb-lot-facts > span {
+  color: var(--kb-muted);
+}
+.kb-lot-facts > b {
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.kb-scan {
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--kb-page);
+}
+
+.kb-rule + .kb-rule {
+  border-top: 1px solid var(--kb-border);
+  padding-top: 10px;
+}
+.kb-row-muted td {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-room-dot.gross {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-chat-dots i,
+  .kb-md-streaming > :last-child::after {
+    animation: none;
   }
 }

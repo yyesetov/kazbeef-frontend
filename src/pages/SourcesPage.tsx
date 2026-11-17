@@ -64,7 +64,7 @@ function useRunCollector() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (code: string) => send(`/admin/collectors/${encodeURIComponent(code)}/run`, 'POST'),
-    onSuccess: (_, code) => notifications.show({ message: `Сборщик ${code} запущен`, color: 'blue' }),
+    onSuccess: (_, code) => notifications.show({ message: `Сбор данных ${code} запущен`, color: 'blue' }),
     onError: (e, code) =>
       e instanceof ApiError && e.status === 409
         ? notifications.show({ message: `Сборщик ${code} уже выполняется`, color: 'yellow' })
@@ -225,7 +225,7 @@ function CollectorCard({
         </div>
         {s.hasCollector && (
           <Button size="xs" leftSection={<IconPlayerPlay size={14} />} loading={s.running || starting} onClick={onRun}>
-            Запустить
+            Собрать данные
           </Button>
         )}
       </Group>

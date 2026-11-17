@@ -23,6 +23,7 @@
     "@fontsource-variable/montserrat": "5.3.0",
     "@mantine/core": "7.13.5",
     "@mantine/dates": "7.13.5",
+    "@mantine/dropzone": "7.13.5",
     "@mantine/hooks": "7.13.5",
     "@mantine/notifications": "7.13.5",
     "@tabler/icons-react": "3.19.0",
@@ -35,7 +36,9 @@
     "react-dom": "18.3.1",
     "react-leaflet": "4.2.1",
     "react-leaflet-cluster": "2.1.0",
-    "react-router-dom": "6.30.6"
+    "react-markdown": "10.1.0",
+    "react-router-dom": "6.30.6",
+    "remark-gfm": "4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

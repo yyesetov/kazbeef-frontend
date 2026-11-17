@@ -1,9 +1,11 @@
 import {
+  IconBooks,
   IconChartHistogram,
   IconDatabase,
+  IconDeviceCctv,
   IconLayoutDashboard,
   IconList,
-  IconMap2,
+  IconMeat,
   IconSatellite,
   type Icon,
 } from '@tabler/icons-react';
@@ -21,14 +23,16 @@ export type NavItem = {
 
 export const NAV: NavItem[] = [
   { path: '/', label: 'Обзор', icon: IconLayoutDashboard },
-  { path: '/map', label: 'Карта', icon: IconMap2 },
   { path: '/events', label: 'События', icon: IconList },
   { path: '/analytics', label: 'Аналитика', icon: IconChartHistogram },
+  { path: '/production', label: 'Производство', title: 'Путь продукции', icon: IconMeat, noFilters: true },
+  { path: '/video', label: 'Видеомониторинг', icon: IconDeviceCctv, noFilters: true },
 ];
 
 export const ADMIN_NAV: NavItem[] = [
   { path: '/sources', label: 'Источники', title: 'Источники данных', icon: IconSatellite, noFilters: true },
   { path: '/reference', label: 'Справочники', icon: IconDatabase, noFilters: true },
+  { path: '/knowledge', label: 'База знаний', icon: IconBooks, noFilters: true },
 ];
 
 const ALL = [...NAV, ...ADMIN_NAV];

@@ -23,6 +23,19 @@ server {
     location /admin/ {
         proxy_pass ${BACKEND_URL};
         include /etc/nginx/conf.d/proxy.inc;
+        # документы базы знаний: до 50 МБ каждый, несколько за раз
+        client_max_body_size 200m;
+    }
+    # Публичный чат: ответ идёт потоком Server-Sent Events. Без отключения буферизации текст пришёл бы
+    # одним куском в конце. Тайм-аут чтения (300 с) уже задан в proxy.inc: повторить proxy_read_timeout
+    # в этом же блоке nginx не даст — директива не может встречаться в одном контексте дважды.
+    location /public/ {
+        proxy_pass ${BACKEND_URL};
+        include /etc/nginx/conf.d/proxy.inc;
+        proxy_buffering off;
+        proxy_cache off;
+        add_header X-Accel-Buffering no;
+        gzip off;
     }
 
     # Файлы сборки содержат хэш в имени: кешируются навсегда

@@ -1,9 +1,10 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import {
   ActionIcon,
   AppShell,
   Box,
   Burger,
+  Collapse,
   Group,
   NavLink,
   Stack,
@@ -14,7 +15,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
-import { IconLogout, IconMoon, IconSun } from '@tabler/icons-react';
+import { IconChevronRight, IconLogout, IconMoon, IconSun } from '@tabler/icons-react';
 import { Navigate, NavLink as RouterLink, Route, Routes, useLocation } from 'react-router-dom';
 import { errorMessage, type Me } from '../api';
 import { useLogout } from '../auth/useAuth';
@@ -27,14 +28,20 @@ import { ADMIN_NAV, NAV, findNavItem, type NavItem } from './navigation';
 
 // Страницы грузятся по требованию: карта и графики не попадают в первую загрузку и на экран входа
 const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const MapPage = lazy(() => import('../pages/MapPage').then((m) => ({ default: m.MapPage })));
 const EventsPage = lazy(() => import('../pages/EventsPage').then((m) => ({ default: m.EventsPage })));
 const AnalyticsPage = lazy(() => import('../pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const TraceabilityPage = lazy(() => import('../pages/TraceabilityPage').then((m) => ({ default: m.TraceabilityPage })));
+const VideoMonitoringPage = lazy(() =>
+  import('../pages/VideoMonitoringPage').then((m) => ({ default: m.VideoMonitoringPage })),
+);
 const SourcesPage = lazy(() => import('../pages/SourcesPage').then((m) => ({ default: m.SourcesPage })));
 const ReferencePage = lazy(() => import('../pages/ReferencePage').then((m) => ({ default: m.ReferencePage })));
+const KnowledgeBasePage = lazy(() =>
+  import('../pages/KnowledgeBasePage').then((m) => ({ default: m.KnowledgeBasePage })),
+);
 
 const HEADER_HEIGHT = 52;
-const NAVBAR_WIDTH = 210;
+const NAVBAR_WIDTH = 232;
 
 function ThemeToggle() {
   const { setColorScheme } = useMantineColorScheme();
@@ -85,6 +92,8 @@ export function AppLayout({ me }: { me: Me }) {
   const location = useLocation();
   const [menuOpened, menu] = useDisclosure(false);
   const current = findNavItem(location.pathname);
+  // Раздел «Управление» свёрнут по умолчанию; открыт сразу, только если открыта одна из его страниц
+  const [adminOpened, setAdminOpened] = useState(() => ADMIN_NAV.some((n) => n.path === location.pathname));
 
   // Срез фильтров живёт в адресной строке: ссылки меню несут его с собой, иначе переход сбрасывал бы фильтры
   const link = (n: NavItem) => (
@@ -128,8 +137,19 @@ export function AppLayout({ me }: { me: Me }) {
           <Stack gap={2}>{NAV.map(link)}</Stack>
           {me.admin && (
             <>
-              <div className="kb-rail-section">Управление</div>
-              <Stack gap={2}>{ADMIN_NAV.map(link)}</Stack>
+              <button
+                type="button"
+                className="kb-rail-section"
+                aria-expanded={adminOpened}
+                aria-controls="kb-admin-nav"
+                onClick={() => setAdminOpened((o) => !o)}
+              >
+                <IconChevronRight size={14} className="kb-rail-chevron" data-open={adminOpened || undefined} />
+                Управление
+              </button>
+              <Collapse in={adminOpened} id="kb-admin-nav">
+                <Stack gap={2}>{ADMIN_NAV.map(link)}</Stack>
+              </Collapse>
             </>
           )}
         </nav>
@@ -145,7 +165,8 @@ export function AppLayout({ me }: { me: Me }) {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Stack gap="md">
+        {/* Снизу место под плавающую кнопку чата: она не закрывает пагинацию и последние строки */}
+        <Stack gap="md" className="kb-fab-space">
           <Group justify="space-between">
             <h1 className="kb-page-title">{current?.title ?? current?.label ?? 'KazBeef'}</h1>
             {location.pathname === '/' && <ExportMenu />}
@@ -155,11 +176,13 @@ export function AppLayout({ me }: { me: Me }) {
             <Suspense fallback={<Loading height={240} />}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/map" element={<MapPage />} />
                 <Route path="/events" element={<EventsPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/production" element={<TraceabilityPage />} />
+                <Route path="/video" element={<VideoMonitoringPage />} />
                 {me.admin && <Route path="/sources" element={<SourcesPage />} />}
                 {me.admin && <Route path="/reference" element={<ReferencePage />} />}
+                {me.admin && <Route path="/knowledge" element={<KnowledgeBasePage />} />}
                 <Route path="*" element={<Navigate to={{ pathname: '/', search: location.search }} replace />} />
               </Routes>
             </Suspense>

@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { fmt, fmtDate, parseJsonArray } from './format';
+import { fmt, fmtDate, fmtSize, parseInstant, parseJsonArray } from './format';
+
+describe('fmtSize', () => {
+  it('байты, килобайты с одной цифрой после запятой, мегабайты', () => {
+    expect(fmtSize(512)).toBe('512 Б');
+    expect(fmtSize(2633)).toBe('2,6 КБ');
+    expect(fmtSize(1112)).toBe('1,1 КБ');
+    expect(fmtSize(50 * 1024 * 1024)).toBe('50 МБ');
+    expect(fmtSize(null)).toBe('—');
+  });
+});
+
+describe('parseInstant', () => {
+  it('понимает время PostgreSQL со смещением без минут', () => {
+    expect(parseInstant('2026-11-17 06:35:56+00').toISOString()).toBe('2026-11-17T06:35:56.000Z');
+    expect(parseInstant('2026-11-17T06:35:56Z').toISOString()).toBe('2026-11-17T06:35:56.000Z');
+    expect(parseInstant('2026-11-17 11:35:56.123+05').toISOString()).toBe('2026-11-17T06:35:56.123Z');
+    // дата без времени не принимается за смещение
+    expect(parseInstant('2026-11-17').toISOString()).toBe('2026-11-17T00:00:00.000Z');
+  });
+});
 
 describe('fmt', () => {
   it('пустые значения показывает тире', () => {

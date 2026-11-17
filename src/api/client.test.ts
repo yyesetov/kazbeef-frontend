@@ -1,5 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, AuthError, NetworkError, errorMessage, get, login, resetCsrf, send } from './client';
+import {
+  ApiError,
+  AuthError,
+  NetworkError,
+  del,
+  errorMessage,
+  get,
+  login,
+  resetCsrf,
+  send,
+  sendText,
+  upload,
+} from './client';
 
 const fetchMock = vi.fn<typeof fetch>();
 
@@ -84,6 +96,59 @@ describe('send', () => {
     expect(init?.method).toBe('PUT');
     expect(init?.body).toBe('{"nameEn":"Anthrax"}');
     expect(headersOf(1)['Content-Type']).toBe('application/json');
+  });
+});
+
+describe('upload', () => {
+  it('отправляет FormData с CSRF и без Content-Type: boundary ставит браузер', async () => {
+    fetchMock
+      .mockResolvedValueOnce(csrf('t'))
+      .mockResolvedValueOnce(json([{ name: 'a.md', id: 1, status: 'processing' }]));
+    const file = new File(['# A'], 'a.md', { type: 'text/markdown' });
+    await expect(upload('/admin/kb/documents', [file])).resolves.toEqual([
+      { name: 'a.md', id: 1, status: 'processing' },
+    ]);
+    const init = fetchMock.mock.calls[1]?.[1];
+    expect(init?.body).toBeInstanceOf(FormData);
+    expect((init?.body as FormData).getAll('files')).toHaveLength(1);
+    expect(headersOf(1)['X-CSRF-TOKEN']).toBe('t');
+    expect(headersOf(1)['Content-Type']).toBeUndefined();
+  });
+
+  it('при 403 повторяет запрос с новым токеном', async () => {
+    fetchMock
+      .mockResolvedValueOnce(csrf('old'))
+      .mockResolvedValueOnce(empty(403))
+      .mockResolvedValueOnce(csrf('new'))
+      .mockResolvedValueOnce(json([]));
+    await upload('/admin/kb/documents', [new File(['x'], 'x.txt')]);
+    expect(headersOf(3)['X-CSRF-TOKEN']).toBe('new');
+  });
+
+  it('413 — ApiError с текстом сервера', async () => {
+    fetchMock.mockResolvedValueOnce(csrf('t')).mockResolvedValueOnce(json({ error: 'Файл больше 50 МБ' }, 413));
+    await expect(upload('/admin/kb/documents', [new File(['x'], 'x.pdf')])).rejects.toMatchObject({
+      status: 413,
+      message: 'Файл больше 50 МБ',
+    });
+  });
+});
+
+describe('sendText и del', () => {
+  it('sendText отправляет текст с указанным Content-Type', async () => {
+    fetchMock.mockResolvedValueOnce(csrf('t')).mockResolvedValueOnce(json({ id: 7 }));
+    await sendText('/admin/kb/documents/7/markdown', 'PUT', '# Заголовок', 'text/markdown');
+    const init = fetchMock.mock.calls[1]?.[1];
+    expect(init?.method).toBe('PUT');
+    expect(init?.body).toBe('# Заголовок');
+    expect(headersOf(1)['Content-Type']).toBe('text/markdown');
+  });
+
+  it('del — DELETE с CSRF', async () => {
+    fetchMock.mockResolvedValueOnce(csrf('t')).mockResolvedValueOnce(empty(204));
+    await expect(del('/admin/kb/documents/7')).resolves.toBeUndefined();
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe('DELETE');
+    expect(headersOf(1)['X-CSRF-TOKEN']).toBe('t');
   });
 });
 
