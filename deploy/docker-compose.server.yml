@@ -1,0 +1,39 @@
+# Сервер: интерфейс и API на одном адресе, HTTPS через Caddy (порты 80/443).
+# Бэкенд работает в своей папке (вариант behind-proxy), этот контейнер подключается к его Docker-сети
+# и проксирует /api, /admin, /public на app:8080. Подробно — docs/DEPLOY.md.
+# Запуск: COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.server.yml в .env, затем docker compose up -d --build
+services:
+  frontend:
+    environment:
+      BACKEND_URL: http://app:8080
+    # снаружи интерфейс доступен только через Caddy
+    ports: !reset []
+    networks:
+      - default
+      - backend
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - frontend
+    environment:
+      SITE_HOST: ${SITE_HOST:?Задайте SITE_HOST в .env, например 203-0-113-10.sslip.io или kazbeef.kz}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+networks:
+  # Сеть, которую создал docker compose бэкенда: <папка бэкенда>_default
+  backend:
+    external: true
+    name: ${BACKEND_NETWORK:-kazbeef_default}
+
+volumes:
+  caddy_data:
+  caddy_config:

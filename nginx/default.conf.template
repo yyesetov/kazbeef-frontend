@@ -1,4 +1,11 @@
 # ${BACKEND_URL} подставляется при старте контейнера. Переменные nginx ($host, $uri и т. д.) остаются как есть.
+# За внешним HTTPS-прокси (Caddy) схема приходит в X-Forwarded-Proto: её и передаём бэкенду.
+# Без прокси заголовка нет — передаём собственную схему nginx.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
+
 server {
     listen 80;
     server_name _;

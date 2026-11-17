@@ -1,0 +1,16 @@
+# HTTPS для KazBeef: сертификат Let's Encrypt Caddy получает и продлевает сам.
+# SITE_HOST — адрес сайта, например 203-0-113-10.sslip.io или kazbeef.kz
+{$SITE_HOST} {
+	# документы базы знаний — до 50 МБ, несколько за раз
+	request_body {
+		max_size 200MB
+	}
+
+	reverse_proxy frontend:80 {
+		# ответ чата идёт потоком: отдавать куски сразу, без буферизации
+		flush_interval -1
+		transport http {
+			read_timeout 300s
+		}
+	}
+}

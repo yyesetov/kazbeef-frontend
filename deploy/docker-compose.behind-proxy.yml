@@ -1,0 +1,18 @@
+# Сервер, где порты 80/443 уже заняты другим веб-сервером (nginx, Apache…): Caddy не запускается.
+# Интерфейс слушает только 127.0.0.1:FRONTEND_PORT, HTTPS делает существующий веб-сервер.
+# Пример сайта для nginx — deploy/nginx-site.conf. Подробно — docs/DEPLOY.md, вариант Б.
+# Запуск: COMPOSE_FILE=docker-compose.yml:deploy/docker-compose.behind-proxy.yml в .env, затем docker compose up -d --build
+services:
+  frontend:
+    environment:
+      BACKEND_URL: http://app:8080
+    ports: !override
+      - '127.0.0.1:${FRONTEND_PORT:-3000}:80'
+    networks:
+      - default
+      - backend
+
+networks:
+  backend:
+    external: true
+    name: ${BACKEND_NETWORK:-kazbeef_default}
