@@ -168,23 +168,28 @@ export function AppLayout({ me }: { me: Me }) {
         {/* Снизу место под плавающую кнопку чата: она не закрывает пагинацию и последние строки */}
         <Stack gap="md" className="kb-fab-space">
           <Group justify="space-between">
-            <h1 className="kb-page-title">{current?.title ?? current?.label ?? 'KazBeef'}</h1>
+            {/* key: при переходе заголовок и страница пересоздаются и входят заново, один раз */}
+            <h1 key={location.pathname} className="kb-page-title">
+              {current?.title ?? current?.label ?? 'KazBeef'}
+            </h1>
             {location.pathname === '/' && <ExportMenu />}
           </Group>
           {!current?.noFilters && <FilterBar />}
           <ErrorBoundary resetKey={location.pathname}>
             <Suspense fallback={<Loading height={240} />}>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/events" element={<EventsPage />} />
-                <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/production" element={<TraceabilityPage />} />
-                <Route path="/video" element={<VideoMonitoringPage />} />
-                {me.admin && <Route path="/sources" element={<SourcesPage />} />}
-                {me.admin && <Route path="/reference" element={<ReferencePage />} />}
-                {me.admin && <Route path="/knowledge" element={<KnowledgeBasePage />} />}
-                <Route path="*" element={<Navigate to={{ pathname: '/', search: location.search }} replace />} />
-              </Routes>
+              <div key={location.pathname} className="kb-route">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/events" element={<EventsPage />} />
+                  <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/production" element={<TraceabilityPage />} />
+                  <Route path="/video" element={<VideoMonitoringPage />} />
+                  {me.admin && <Route path="/sources" element={<SourcesPage />} />}
+                  {me.admin && <Route path="/reference" element={<ReferencePage />} />}
+                  {me.admin && <Route path="/knowledge" element={<KnowledgeBasePage />} />}
+                  <Route path="*" element={<Navigate to={{ pathname: '/', search: location.search }} replace />} />
+                </Routes>
+              </div>
             </Suspense>
           </ErrorBoundary>
         </Stack>

@@ -20,6 +20,25 @@
   --kb-rail: #8c2628;
   --kb-series-1: #2a78d6;
   --kb-track: #e9eef5;
+
+  /* Состояние производства: норма, внимание, тревога (та же шкала, что у уровня риска) */
+  --kb-ok: #0a8a0a;
+  --kb-ok-tint: rgba(12, 163, 12, 0.12);
+  --kb-ok-band: rgba(12, 163, 12, 0.38);
+  --kb-ok-wash: rgba(12, 163, 12, 0.07);
+  --kb-warn: #e08a00;
+  --kb-warn-ink: #9a5b00;
+  --kb-warn-tint: rgba(250, 178, 25, 0.2);
+  --kb-hot: #d03b3b;
+  --kb-hot-tint: rgba(208, 59, 59, 0.12);
+  --kb-hot-wash: #fdf6f6;
+  --kb-hot-line: rgba(208, 59, 59, 0.35);
+  --kb-brand-solid: #8c2628;
+  --kb-brand-tint: rgba(140, 38, 40, 0.1);
+
+  /* Движение: одна кривая для отклика интерфейса, вторая — для появления (без перелёта) */
+  --kb-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --kb-ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
 }
 [data-mantine-color-scheme='dark'] {
   --kb-page: #161413;
@@ -34,6 +53,20 @@
   --kb-rail: #451416;
   --kb-series-1: #3987e5;
   --kb-track: #25292f;
+
+  --kb-ok: #3cc43c;
+  --kb-ok-tint: rgba(60, 196, 60, 0.14);
+  --kb-ok-band: rgba(60, 196, 60, 0.4);
+  --kb-ok-wash: rgba(60, 196, 60, 0.07);
+  --kb-warn: #f0a52a;
+  --kb-warn-ink: #f5b94d;
+  --kb-warn-tint: rgba(240, 165, 42, 0.16);
+  --kb-hot: #e5534b;
+  --kb-hot-tint: rgba(229, 83, 75, 0.16);
+  --kb-hot-wash: #2a1d1c;
+  --kb-hot-line: rgba(229, 83, 75, 0.45);
+  --kb-brand-solid: #c25356;
+  --kb-brand-tint: rgba(217, 140, 142, 0.16);
 }
 
 body {
@@ -1204,105 +1237,6 @@ body {
 }
 /* ---------- Путь продукции ---------- */
 
-/* Этапы — лента слева направо со стрелками; на узком экране прокручивается по горизонтали */
-.kb-flow {
-  display: flex;
-  align-items: stretch;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-.kb-flow-cell {
-  display: flex;
-  align-items: center;
-  flex: 1 0 136px;
-  min-width: 136px;
-}
-.kb-flow-arrow {
-  flex: none;
-  color: var(--kb-axis);
-  margin: 0 1px;
-}
-.kb-stage {
-  appearance: none;
-  font: inherit;
-  text-align: left;
-  color: var(--kb-ink);
-  background: var(--kb-surface);
-  border: 1px solid var(--kb-border);
-  border-radius: 10px;
-  padding: 10px 11px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-}
-.kb-stage:hover {
-  border-color: var(--kb-axis);
-}
-.kb-stage[data-active] {
-  border-color: var(--kb-brand);
-  box-shadow: inset 0 0 0 1px var(--kb-brand);
-}
-.kb-stage.problem {
-  border-top: 3px solid #d03b3b;
-}
-.kb-stage:focus-visible {
-  outline: 2px solid var(--kb-brand);
-  outline-offset: 2px;
-}
-.kb-stage-step {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--kb-muted);
-}
-.kb-stage-name {
-  font-family: var(--kb-font-display);
-  font-weight: 600;
-  font-size: 13px;
-  line-height: 1.25;
-  min-height: 2.5em;
-}
-.kb-stage-count {
-  font-family: var(--kb-font-display);
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
-.kb-stage-count small {
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--kb-muted);
-}
-.kb-stage-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px;
-  margin-top: 2px;
-}
-.kb-stage-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  color: var(--kb-ink-2);
-  background: var(--kb-page);
-  border-radius: 4px;
-  padding: 1px 5px;
-}
-.kb-stage-tag.bad {
-  color: #fff;
-  background: #d03b3b;
-}
-.kb-stage-tag.warn {
-  color: #fff;
-  background: #d6693c;
-}
-
 .kb-qr-search {
   display: flex;
   flex-wrap: wrap;
@@ -1311,41 +1245,806 @@ body {
   gap: 12px;
 }
 
-/* Камеры: название, график за 3 часа с полосой нормы, текущая температура */
-.kb-room-temp {
+/* Шапка карточки со списком обозначений справа */
+.kb-process-head {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-bottom: 14px;
+}
+.kb-process-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12px;
+  color: var(--kb-ink-2);
+}
+.kb-process-legend li {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 0;
-  border-top: 1px solid var(--kb-border);
+  gap: 6px;
 }
-.kb-room-temp:first-child {
-  border-top: 0;
+.kb-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
 }
-.kb-room-temp-value {
-  min-width: 74px;
-  text-align: right;
+.kb-legend-dot.ok {
+  background: var(--kb-ok);
+}
+.kb-legend-dot.warn {
+  background: var(--kb-warn);
+}
+.kb-legend-dot.bad {
+  background: var(--kb-hot);
+}
+
+/* Схема: три ряда сетки — фазы, обход заморозки, этапы. На среднем экране прокручивается вбок */
+.kb-process-scroll {
+  overflow-x: auto;
+  margin: 0 -16px;
+  padding: 0 16px 6px;
+}
+.kb-pipe {
+  display: grid;
+  grid-template-columns: repeat(var(--n), minmax(132px, 1fr));
+  grid-template-rows: auto 30px auto;
+  min-width: calc(var(--n) * 132px);
+}
+.kb-phase {
+  grid-row: 1;
+  position: relative;
+  margin: 0 8px 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--kb-grid);
   font-family: var(--kb-font-display);
-  font-weight: 700;
-  font-size: 17px;
-  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--kb-muted);
+  text-align: center;
+  animation: kb-fade 600ms var(--kb-ease) backwards;
+  animation-delay: calc(var(--i) * 120ms);
 }
-.kb-room-temp.bad .kb-room-temp-value {
-  color: #d03b3b;
+/* Засечки по краям фазы: видно, где она начинается и кончается */
+.kb-phase::before,
+.kb-phase::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  width: 2px;
+  height: 7px;
+  background: var(--kb-grid);
 }
-.kb-spark {
+.kb-phase::before {
+  left: 0;
+}
+.kb-phase::after {
+  right: 0;
+}
+/* Дуга от «Упаковки» к «Складу» над заморозкой: так идёт охлаждённая продукция.
+   Проценты отступов считаются от ширины трёх колонок: половина колонки — шестая часть */
+.kb-bypass {
+  grid-row: 2;
+  position: relative;
+  margin: 10px calc(100% / 6) 0;
+  border: 1.5px dashed var(--kb-axis);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+}
+.kb-bypass span {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -55%);
+  padding: 0 6px;
+  background: var(--kb-surface);
+  font-size: 11px;
+  color: var(--kb-muted);
+  white-space: nowrap;
+}
+
+.kb-node {
+  grid-row: 3;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--kb-ink);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.kb-node-rail {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  height: 36px;
   flex: none;
 }
-.kb-spark-band {
-  fill: var(--kb-track);
+/* Линия процесса проходит через все точки; у первой и последней — только половина */
+.kb-node-rail::before {
+  content: '';
+  position: absolute;
+  top: 17px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--kb-axis);
+  transform-origin: left center;
+  animation: kb-draw-x 520ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i) * 70ms);
 }
-.kb-spark-line {
-  stroke: var(--kb-series-1);
-  stroke-width: 1.6;
+.kb-node:first-of-type .kb-node-rail::before {
+  left: 50%;
+}
+.kb-node:last-of-type .kb-node-rail::before {
+  right: 50%;
+}
+.kb-node-arrow {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  z-index: 1;
+  transform: translate(50%, -50%);
+  color: var(--kb-muted);
+  background: var(--kb-surface);
+  border-radius: 50%;
+}
+.kb-node-dot {
+  position: relative;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--kb-surface);
+  border: 2px solid var(--kb-axis);
+  color: var(--kb-ink-2);
+  transition:
+    background-color 200ms var(--kb-ease),
+    color 200ms var(--kb-ease),
+    box-shadow 200ms var(--kb-ease);
+  animation: kb-pop 420ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i) * 70ms + 80ms);
+}
+.kb-node[data-state='ok'] .kb-node-dot {
+  border-color: var(--kb-ok);
+  color: var(--kb-ok);
+}
+.kb-node[data-state='warn'] .kb-node-dot {
+  border-color: var(--kb-warn);
+  color: var(--kb-warn);
+}
+.kb-node[data-state='bad'] .kb-node-dot {
+  border-color: var(--kb-hot);
+  color: var(--kb-hot);
+  background: var(--kb-hot-tint);
+}
+.kb-node[data-state='idle'] .kb-node-dot {
+  border-style: dashed;
+  color: var(--kb-muted);
+}
+.kb-node[data-active] .kb-node-dot {
+  background: var(--kb-brand-solid);
+  color: #fff;
+  box-shadow: 0 0 0 4px var(--kb-brand-tint);
+}
+/* Тревога: от точки расходится кольцо. Это единственное, что на схеме движется само */
+.kb-node-dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--kb-hot);
+  opacity: 0;
+  pointer-events: none;
+}
+.kb-node[data-state='bad'] .kb-node-dot::after {
+  animation: kb-ring 2.4s var(--kb-ease) infinite;
+}
+
+.kb-node-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 5px 0;
+  padding: 10px 10px 11px;
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  transition:
+    transform 120ms var(--kb-ease),
+    border-color 180ms var(--kb-ease),
+    box-shadow 180ms var(--kb-ease);
+  animation: kb-rise 480ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i) * 70ms + 120ms);
+}
+.kb-node[data-state='bad'] .kb-node-body {
+  background: var(--kb-hot-wash);
+  border-color: var(--kb-hot-line);
+}
+.kb-node[data-active] .kb-node-body {
+  border-color: var(--kb-brand);
+  box-shadow: inset 0 0 0 1px var(--kb-brand);
+}
+.kb-node:focus-visible {
+  outline: none;
+}
+.kb-node:focus-visible .kb-node-body {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-node-step {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--kb-muted);
+}
+.kb-node-name {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.25;
+  min-height: 2.5em;
+}
+.kb-node-count {
+  font-family: var(--kb-font-display);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.kb-node-count small {
+  display: block;
+  margin-top: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--kb-muted);
+}
+.kb-node[data-state='idle'] .kb-node-count {
+  color: var(--kb-muted);
+}
+.kb-node-norms {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11.5px;
+  color: var(--kb-ink-2);
+}
+.kb-node-norms span,
+.kb-node-room {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.kb-node-room {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--kb-ok);
+}
+.kb-node-room[data-level='warn'] {
+  color: var(--kb-warn-ink);
+}
+.kb-node-room[data-level='bad'] {
+  color: var(--kb-hot);
+}
+.kb-node-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 2px;
+}
+.kb-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: 999px;
+  padding: 0 7px;
+  color: var(--kb-ink-2);
+  background: var(--kb-page);
+}
+.kb-flag.bad {
+  color: #fff;
+  background: var(--kb-hot);
+}
+.kb-flag.warn {
+  color: var(--kb-warn-ink);
+  background: var(--kb-warn-tint);
+}
+.kb-flag.ok {
+  color: var(--kb-ok);
+  background: var(--kb-ok-tint);
+}
+/* На широком экране это видно по дуге обхода */
+@media (min-width: 48em) {
+  .kb-flag.only {
+    display: none;
+  }
+}
+
+/* На телефоне схема — вертикальная лента: точка и линия слева, карточка этапа справа */
+@media (max-width: 47.99em) {
+  .kb-process-scroll {
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+  .kb-pipe {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .kb-phase,
+  .kb-bypass {
+    display: none;
+  }
+  .kb-node {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .kb-node-rail {
+    width: 36px;
+    height: auto;
+    align-items: flex-start;
+    padding-top: 8px;
+  }
+  .kb-node-rail::before,
+  .kb-node:first-of-type .kb-node-rail::before,
+  .kb-node:last-of-type .kb-node-rail::before {
+    top: 0;
+    bottom: 0;
+    left: 17px;
+    right: auto;
+    width: 2px;
+    height: auto;
+    transform-origin: center top;
+    animation-name: kb-draw-y;
+  }
+  .kb-node:first-of-type .kb-node-rail::before {
+    top: 26px;
+  }
+  .kb-node:last-of-type .kb-node-rail::before {
+    bottom: auto;
+    height: 26px;
+  }
+  .kb-node-arrow {
+    top: auto;
+    bottom: 0;
+    right: auto;
+    left: 18px;
+    transform: translate(-50%, 50%) rotate(90deg);
+  }
+  .kb-node-body {
+    margin: 0 0 12px 10px;
+  }
+  .kb-node-name {
+    min-height: 0;
+  }
+}
+
+/* Панель выбранного этапа */
+.kb-stage-panel {
+  animation: kb-rise 320ms var(--kb-ease-enter) backwards;
+  scroll-margin-top: 72px;
+}
+.kb-stage-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.kb-stage-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: var(--kb-brand);
+  background: var(--kb-brand-tint);
+}
+.kb-stage-title {
+  font-family: var(--kb-font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--kb-ink);
+}
+.kb-stage-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.kb-stage-facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--kb-ink-2);
+  background: var(--kb-page);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.kb-stage-facts > span[data-bad] {
+  color: var(--kb-hot);
+  background: var(--kb-hot-tint);
+  font-weight: 600;
+}
+.kb-stage-facts b {
+  color: var(--kb-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Живая точка: у тревоги от неё расходится кольцо, в норме она стоит */
+.kb-live {
+  position: relative;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.kb-live::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+}
+[data-level='bad'] > .kb-live::after,
+[data-bad] > .kb-live::after {
+  animation: kb-ping 2.4s var(--kb-ease) infinite;
+}
+
+/* ---------- Холодильные камеры ---------- */
+
+.kb-rooms-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.kb-rooms-updated {
+  font-size: 12px;
+  color: var(--kb-muted);
+  margin-left: 4px;
+}
+.kb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.kb-pill[data-level='ok'] {
+  color: var(--kb-ok);
+  background: var(--kb-ok-tint);
+}
+.kb-pill[data-level='warn'] {
+  color: var(--kb-warn-ink);
+  background: var(--kb-warn-tint);
+}
+.kb-pill[data-level='bad'] {
+  color: #fff;
+  background: var(--kb-hot);
+}
+
+.kb-fridges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+.kb-fridge {
+  --kb-line: var(--kb-series-1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  background: var(--kb-surface);
+  border: 1px solid var(--kb-border);
+  border-radius: 10px;
+  animation: kb-rise 480ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i) * 60ms + 100ms);
+}
+.kb-fridge[data-level='warn'] {
+  box-shadow: inset 0 3px 0 var(--kb-warn);
+}
+.kb-fridge[data-level='bad'] {
+  --kb-line: var(--kb-hot);
+  background: var(--kb-hot-wash);
+  border-color: var(--kb-hot-line);
+  box-shadow: inset 0 3px 0 var(--kb-hot);
+}
+.kb-fridge-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.kb-fridge-head .kb-pill {
+  margin-bottom: 6px;
+}
+.kb-fridge-name {
+  font-family: var(--kb-font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.3;
+  /* Две строки под название в каждой плитке — остальное в соседних плитках на одном уровне */
+  min-height: 2.6em;
+}
+.kb-fridge-meta {
+  font-size: 12px;
+  line-height: 1.4;
+  min-height: 2.8em;
+  color: var(--kb-muted);
+}
+.kb-fridge-now {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.kb-fridge-sub {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+.kb-fridge-temp {
+  font-family: var(--kb-font-display);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.kb-fridge-temp small {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--kb-muted);
+  margin-left: 3px;
+}
+.kb-fridge[data-level='bad'] .kb-fridge-temp {
+  color: var(--kb-hot);
+}
+.kb-fridge-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--kb-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.kb-fridge-trend[data-bad] {
+  color: var(--kb-hot);
+}
+
+/* Шкала нормы: зелёная полоса — допустимый диапазон, риска — сейчас */
+.kb-gauge-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--kb-grid);
+}
+.kb-gauge-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--kb-ok-band);
+}
+.kb-gauge-mark {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 14px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--kb-ink);
+  box-shadow: 0 0 0 2px var(--kb-surface);
+  animation: kb-pop 420ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms + 500ms);
+}
+.kb-gauge[data-level='bad'] .kb-gauge-mark {
+  background: var(--kb-hot);
+}
+.kb-gauge[data-level='warn'] .kb-gauge-mark {
+  background: var(--kb-warn);
+}
+.kb-gauge-labels {
+  position: relative;
+  height: 14px;
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--kb-muted);
+  font-variant-numeric: tabular-nums;
+}
+.kb-gauge-labels span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+/* График за 3 часа */
+.kb-chart {
+  margin: 0;
+}
+.kb-chart-plot {
+  position: relative;
+  height: 76px;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.kb-chart-plot svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.kb-chart-band {
+  fill: var(--kb-ok-wash);
+}
+.kb-chart-limit {
+  stroke: var(--kb-axis);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.kb-chart-line {
+  stroke-width: 2;
   stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
-.kb-room-temp.bad .kb-spark-line {
-  stroke: #d03b3b;
+/* Линия прорисовывается слева направо один раз, когда плитка появилась */
+.kb-chart-draw {
+  animation: kb-wipe 900ms var(--kb-ease-enter) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms + 250ms);
+}
+.kb-chart-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--kb-axis);
+  pointer-events: none;
+}
+.kb-chart-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: var(--kb-series-1);
+  color: var(--kb-series-1);
+  box-shadow: 0 0 0 2px var(--kb-surface);
+  pointer-events: none;
+  transition:
+    left 90ms linear,
+    top 90ms linear;
+}
+.kb-chart-dot[data-out] {
+  background: var(--kb-hot);
+  color: var(--kb-hot);
+}
+.kb-chart-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+}
+.kb-chart-dot[data-live][data-out]::after {
+  animation: kb-ping 2.4s var(--kb-ease) infinite;
+}
+.kb-chart-tip {
+  position: absolute;
+  top: -4px;
+  left: clamp(52px, var(--x), calc(100% - 52px));
+  transform: translate(-50%, -100%);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  white-space: nowrap;
+  color: var(--kb-surface);
+  background: var(--kb-ink);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms var(--kb-ease);
+}
+.kb-chart-tip[data-visible] {
+  opacity: 1;
+}
+.kb-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--kb-muted);
+}
+.kb-fridge-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--kb-ink-2);
+}
+.kb-fridge-msg svg {
+  flex: none;
+  margin-top: 2px;
+}
+.kb-fridge[data-level='bad'] .kb-fridge-msg {
+  color: var(--kb-hot);
+  font-weight: 500;
+}
+.kb-fridge-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--kb-border);
+  font-size: 12.5px;
+  color: var(--kb-muted);
+}
+
+/* Текстовая кнопка со стрелкой: стрелка смещается на 3px при наведении */
+.kb-link-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--kb-brand);
+  cursor: pointer;
+  border-radius: 4px;
+}
+.kb-link-btn:focus-visible {
+  outline: 2px solid var(--kb-brand);
+  outline-offset: 2px;
+}
+.kb-arrow {
+  transition: transform 120ms var(--kb-ease);
+}
+.kb-link-btn:hover .kb-arrow,
+.kb-link-btn:focus-visible .kb-arrow {
+  transform: translateX(3px);
+  transition-duration: 150ms;
 }
 
 .kb-lot-facts {
@@ -1388,5 +2087,198 @@ body {
   .kb-chat-dots i,
   .kb-md-streaming > :last-child::after {
     animation: none;
+  }
+}
+
+/* ---------- Движение ----------
+ * Три слоя, и больше ничего не движется:
+ *   1. появление страницы при переходе — один раз: заголовок, затем блоки по очереди;
+ *   2. отклик на указатель и нажатие — кнопки, плитки, строки, стрелки;
+ *   3. сигналы тревоги — кольцо у камеры или этапа вне нормы.
+ * Прокрутка ничего не запускает. Двигаются только transform и opacity (и clip-path у линии графика).
+ * При «уменьшить движение» всё стоит в конечном виде — см. конец файла.
+ */
+
+@keyframes kb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes kb-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes kb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@keyframes kb-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes kb-draw-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes kb-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes kb-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes kb-ring {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+@keyframes kb-ping {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+
+/* 1. Появление страницы. Обёртка .kb-route пересоздаётся при смене адреса, поэтому вход
+   проигрывается один раз на переход. fill-mode backwards: после входа transform свободен для наведения */
+.kb-page-title {
+  animation: kb-rise 520ms var(--kb-ease-enter) backwards;
+}
+.kb-route > * > * {
+  animation: kb-rise 520ms var(--kb-ease-enter) backwards;
+  animation-delay: 360ms;
+}
+.kb-route > * > :nth-child(1) {
+  animation-delay: 60ms;
+}
+.kb-route > * > :nth-child(2) {
+  animation-delay: 120ms;
+}
+.kb-route > * > :nth-child(3) {
+  animation-delay: 180ms;
+}
+.kb-route > * > :nth-child(4) {
+  animation-delay: 240ms;
+}
+.kb-route > * > :nth-child(5) {
+  animation-delay: 300ms;
+}
+/* Полосы показателей и прогресса заполняются слева направо, когда появились */
+.mantine-Progress-section,
+.kb-bars-fill {
+  transform-origin: left center;
+  animation: kb-grow 700ms var(--kb-ease-enter) backwards;
+  animation-delay: 250ms;
+}
+
+/* Вход и форма входа */
+.kb-login-brand > * {
+  animation: kb-rise 600ms var(--kb-ease-enter) backwards;
+}
+.kb-login-brand > :nth-child(2) {
+  animation-delay: 90ms;
+}
+.kb-login-form form {
+  animation: kb-rise 600ms var(--kb-ease-enter) backwards;
+  animation-delay: 160ms;
+}
+
+/* 2. Отклик. Цвета меняются везде, сдвиги — только при точном указателе (мышь) */
+.kb-navlink,
+.kb-rail-action,
+.kb-room,
+.kb-cam,
+.kb-row,
+.kb-list-item {
+  transition:
+    background-color 150ms var(--kb-ease),
+    color 150ms var(--kb-ease),
+    border-color 150ms var(--kb-ease),
+    box-shadow 180ms var(--kb-ease),
+    transform 120ms var(--kb-ease);
+}
+.kb-navlink .mantine-NavLink-section svg {
+  transition: transform 150ms var(--kb-ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Кнопка: шаг вверх на 1px при наведении, вниз и чуть меньше при нажатии */
+  .mantine-Button-root:not(:disabled):not([data-disabled]):not([data-loading]) {
+    transition:
+      background-color 150ms var(--kb-ease),
+      border-color 150ms var(--kb-ease),
+      color 150ms var(--kb-ease),
+      transform 120ms var(--kb-ease);
+  }
+  .mantine-Button-root:not(:disabled):not([data-disabled]):not([data-loading]):hover {
+    transform: translateY(-1px);
+    transition-duration: 150ms;
+  }
+  .mantine-Button-root:not(:disabled):not([data-disabled]):not([data-loading]):active {
+    transform: translateY(1px) scale(0.985);
+    transition-duration: 90ms;
+  }
+
+  /* Нажимаемая плитка поднимается на 2px, рамка темнеет, появляется мягкая тень */
+  .kb-node:hover .kb-node-body,
+  .kb-room:hover,
+  .kb-cam:hover {
+    transform: translateY(-2px);
+    border-color: var(--kb-axis);
+    box-shadow: 0 8px 24px rgba(31, 27, 26, 0.08);
+    transition-duration: 180ms;
+  }
+  .kb-node[data-active]:hover .kb-node-body {
+    border-color: var(--kb-brand);
+    box-shadow:
+      inset 0 0 0 1px var(--kb-brand),
+      0 8px 24px rgba(31, 27, 26, 0.08);
+  }
+  .kb-node:active .kb-node-body,
+  .kb-room:active,
+  .kb-cam:active {
+    transform: translateY(0) scale(0.99);
+    transition-duration: 90ms;
+  }
+
+  /* Пункт меню: значок смещается на 2px — видно, куда ведёт указатель */
+  .kb-navlink:hover .mantine-NavLink-section svg {
+    transform: translateX(2px);
+  }
+}
+
+/* 3. При «уменьшить движение» всё стоит в конечном виде: входы мгновенные, кольца тревоги не расходятся,
+   цвет и подписи тревоги остаются */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }

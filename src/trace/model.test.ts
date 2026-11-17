@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { STAGES } from './demo';
-import { acceptWarnings, dwell, fmtHours, nextStage, pathOf, roomState } from './model';
-import type { Lot, Stage } from './types';
+import { acceptWarnings, dwell, fmtHours, nextStage, pathOf, roomState, roomTrend } from './model';
+import type { ColdRoom, Lot, Stage } from './types';
 
 const NOW = Date.parse('2026-11-17T12:00:00Z');
 const hoursAgo = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
@@ -97,5 +97,39 @@ describe('вспомогательное', () => {
       current: -16.5,
       ok: false,
     });
+  });
+});
+
+describe('roomTrend', () => {
+  const room = (readings: number[]): ColdRoom => ({
+    id: 'k',
+    name: 'К',
+    stageId: 'storage',
+    min: -22,
+    max: -18,
+    readings,
+  });
+
+  it('ровная температура в середине нормы — всё спокойно', () => {
+    const t = roomTrend(room([-20, -20, -20, -20, -20, -20, -20]));
+    expect(t.level).toBe('ok');
+    expect(t.perHour).toBeCloseTo(0);
+    expect(t.etaMinutes).toBeNull();
+  });
+
+  it('теплеет к границе — прогноз выхода за норму', () => {
+    // +0,1 °C за 10 минут = +0,6 °C/ч; до −18 °C осталось 0,8 °C → 80 минут
+    const t = roomTrend(room([-19.4, -19.3, -19.2, -19.1, -19, -18.9, -18.8]));
+    expect(t.perHour).toBeCloseTo(0.6);
+    expect(t.etaMinutes).toBe(80);
+    expect(t.bound).toBe(-18);
+    expect(t.level).toBe('warn');
+  });
+
+  it('вне нормы: сколько минут прошло с первого показания за границей', () => {
+    const t = roomTrend(room([-19, -19, -18.5, -17.8, -17.2, -16.9]));
+    expect(t.level).toBe('bad');
+    expect(t.outMinutes).toBe(20);
+    expect(t.etaMinutes).toBeNull();
   });
 });

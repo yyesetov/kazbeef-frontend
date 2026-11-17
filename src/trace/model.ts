@@ -63,6 +63,62 @@ export function roomState(room: ColdRoom) {
   return { current, ok: current >= room.min && current <= room.max };
 }
 
+/** Датчик камеры присылает показание раз в 10 минут. */
+export const READING_MINUTES = 10;
+/** Тренд считается по последнему часу: 7 показаний. */
+const TREND_POINTS = 7;
+/** Прогноз выхода за норму показываем, только если он ближе этого горизонта. */
+const ETA_HORIZON_MIN = 180;
+/** «Близко к границе»: до края нормы меньше этой доли её ширины. */
+const EDGE_SHARE = 0.15;
+
+export type RoomLevel = 'ok' | 'warn' | 'bad';
+
+/**
+ * Что происходит в камере: скорость изменения за последний час (°C/ч), сколько минут она уже вне нормы,
+ * через сколько минут выйдет за норму при нынешнем темпе и общий уровень.
+ */
+export function roomTrend(room: ColdRoom) {
+  const { current, ok } = roomState(room);
+  const tail = room.readings.slice(-TREND_POINTS);
+  const n = tail.length;
+  // Наклон прямой по методу наименьших квадратов, в °C за одно показание
+  let slope = 0;
+  if (n >= 2) {
+    const mx = (n - 1) / 2;
+    const my = tail.reduce((s, v) => s + v, 0) / n;
+    let num = 0;
+    let den = 0;
+    tail.forEach((v, i) => {
+      num += (i - mx) * (v - my);
+      den += (i - mx) ** 2;
+    });
+    slope = den ? num / den : 0;
+  }
+  const perHour = slope * (60 / READING_MINUTES);
+
+  let outReadings = 0;
+  for (let i = room.readings.length - 1; i >= 0; i--) {
+    const v = room.readings[i] as number;
+    if (v >= room.min && v <= room.max) break;
+    outReadings++;
+  }
+  // Первое показание вне нормы — момент выхода: длительность считается от него
+  const outMinutes = outReadings ? (outReadings - 1) * READING_MINUTES : 0;
+
+  let etaMinutes: number | null = null;
+  if (ok && Math.abs(perHour) >= 0.05) {
+    const bound = perHour > 0 ? room.max : room.min;
+    const eta = ((bound - current) / perHour) * 60;
+    if (eta >= 0 && eta <= ETA_HORIZON_MIN) etaMinutes = Math.round(eta);
+  }
+
+  const span = room.max - room.min;
+  const margin = Math.min(current - room.min, room.max - current);
+  const level: RoomLevel = !ok ? 'bad' : etaMinutes !== null || margin < span * EDGE_SHARE ? 'warn' : 'ok';
+  return { current, ok, perHour, outMinutes, etaMinutes, level, bound: perHour > 0 ? room.max : room.min };
+}
+
 /** Камера, где лежит партия (по этапу и цепочке). */
 export function roomOf(lot: Lot, rooms: ColdRoom[]): ColdRoom | undefined {
   return rooms.find((r) => r.stageId === lot.stageId && (!r.chain || r.chain === lot.chain));

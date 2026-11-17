@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { forwardRef, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   Alert,
   Badge,
@@ -19,18 +19,23 @@ import {
 import {
   IconAlertTriangle,
   IconArrowBackUp,
+  IconArrowNarrowRight,
   IconCheck,
-  IconChevronRight,
-  IconClockExclamation,
+  IconClockHour4,
   IconInfoCircle,
   IconQrcode,
   IconSnowflake,
   IconTemperature,
+  IconUsers,
 } from '@tabler/icons-react';
 import { Empty, ErrorState, Loading } from '../components/states';
 import { StatTile } from '../components/StatTile';
 import { fmt, fmtDateTime } from '../lib/format';
+import { ColdRooms } from '../trace/ColdRooms';
+import { ProcessMap } from '../trace/ProcessMap';
+import { STAGE_ICON } from '../trace/icons';
 import { useScan, useTraceOverview } from '../trace/api';
+import { fmtTemp, lotsWord, rangeText, windowText } from '../trace/format';
 import {
   REJECT_REASONS,
   acceptWarnings,
@@ -40,10 +45,9 @@ import {
   nextStage,
   roomOf,
   roomState,
-  stageIssues,
   type DwellState,
 } from '../trace/model';
-import type { ColdRoom, Handoff, Lot, Stage, StageId, TraceOverview } from '../trace/types';
+import type { Handoff, Lot, Stage, StageId, TraceOverview } from '../trace/types';
 
 const DAY_MS = 24 * 60 * 60_000;
 
@@ -62,86 +66,7 @@ const STATUS_BADGE: Record<Lot['status'], { label: string; color: string } | nul
   split: { label: 'Разделана', color: 'gray' },
 };
 
-const fmtTemp = (t: number) => `${t > 0 ? '+' : ''}${t.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} °C`;
-
-function rangeText(min?: number, max?: number) {
-  if (min !== undefined && max !== undefined) return `${fmtTemp(min)} … ${fmtTemp(max)}`;
-  if (max !== undefined) return `не выше ${fmtTemp(max)}`;
-  if (min !== undefined) return `не ниже ${fmtTemp(min)}`;
-  return null;
-}
-
 const stageName = (stages: Stage[], id: StageId | null) => stages.find((s) => s.id === id)?.name ?? '—';
-
-// ---------- доска этапов ----------
-
-function FlowBoard({
-  data,
-  selected,
-  onSelect,
-}: {
-  data: TraceOverview;
-  selected: StageId;
-  onSelect: (id: StageId) => void;
-}) {
-  return (
-    <div className="kb-flow" role="tablist" aria-label="Этапы процесса">
-      {data.stages.map((s, i) => {
-        const issues = stageIssues(s.id, data.lots, data.stages, data.rooms);
-        const kg = issues.lots.reduce((sum, l) => sum + l.weightKg, 0);
-        const problems = issues.over + issues.returned + issues.warmRooms.length;
-        const range = rangeText(s.tempMin, s.tempMax);
-        return (
-          <div key={s.id} className="kb-flow-cell">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selected === s.id}
-              className={`kb-stage${problems ? ' problem' : ''}`}
-              data-active={selected === s.id || undefined}
-              onClick={() => onSelect(s.id)}
-            >
-              <span className="kb-stage-step">{i + 1}</span>
-              <span className="kb-stage-name">{s.name}</span>
-              <span className="kb-stage-count">
-                {fmt(issues.lots.length)}
-                <small> {issues.lots.length ? `· ${fmt(Math.round(kg))} кг` : ''}</small>
-              </span>
-              <span className="kb-stage-tags">
-                {range && (
-                  <span className="kb-stage-tag">
-                    <IconTemperature size={12} />
-                    {range}
-                  </span>
-                )}
-                {issues.over > 0 && (
-                  <span className="kb-stage-tag bad">
-                    <IconClockExclamation size={12} />
-                    Передержка: {issues.over}
-                  </span>
-                )}
-                {issues.returned > 0 && (
-                  <span className="kb-stage-tag warn">
-                    <IconArrowBackUp size={12} />
-                    Возврат: {issues.returned}
-                  </span>
-                )}
-                {issues.warmRooms.length > 0 && (
-                  <span className="kb-stage-tag bad">
-                    <IconAlertTriangle size={12} />
-                    Камера вне нормы
-                  </span>
-                )}
-                {s.only === 'frozen' && <span className="kb-stage-tag">Только замороженная</span>}
-              </span>
-            </button>
-            {i < data.stages.length - 1 && <IconChevronRight className="kb-flow-arrow" size={18} aria-hidden />}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 // ---------- партии этапа ----------
 
@@ -176,20 +101,104 @@ function StatusBadge({ lot }: { lot: Lot }) {
   );
 }
 
-function StageLots({ data, stageId, onOpen }: { data: TraceOverview; stageId: StageId; onOpen: (l: Lot) => void }) {
-  const stage = data.stages.find((s) => s.id === stageId);
+type StageLotsProps = {
+  data: TraceOverview;
+  stageId: StageId;
+  onOpen: (l: Lot) => void;
+  onSelect: (id: StageId) => void;
+};
+
+const StageLots = forwardRef<HTMLDivElement, StageLotsProps>(function StageLots(
+  { data, stageId, onOpen, onSelect },
+  ref,
+) {
+  const index = data.stages.findIndex((s) => s.id === stageId);
+  const stage = data.stages[index];
   if (!stage) return null;
+  const prev = data.stages[index - 1];
+  const next = data.stages[index + 1];
   const lots = data.lots
     .filter((l) => l.stageId === stageId && l.status !== 'split')
     .sort((a, b) => dwell(b, stage).ratio - dwell(a, stage).ratio);
+  const kg = lots.reduce((s, l) => s + l.weightKg, 0);
   const limits = rangeText(stage.tempMin, stage.tempMax);
+  const chilledLimits = stage.chilled ? rangeText(stage.chilled.tempMin, stage.chilled.tempMax) : null;
+  const term = windowText(stage);
+  const rooms = data.rooms.filter((r) => r.stageId === stageId);
+  const Icon = STAGE_ICON[stage.id];
   return (
-    <div className="kb-card">
-      <div className="kb-card-title">{stage.name}</div>
-      <div className="kb-card-sub">
-        {stage.department} · {stage.description}
-        {limits ? ` · Температура: ${limits}` : ''}
+    <div
+      ref={ref}
+      className="kb-card kb-stage-panel"
+      id="kb-stage-panel"
+      role="tabpanel"
+      aria-labelledby={`kb-node-${stageId}`}
+    >
+      <div className="kb-stage-head">
+        <span className="kb-stage-icon" aria-hidden>
+          <Icon size={22} stroke={1.7} />
+        </span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="kb-card-sub">
+            Этап {index + 1} из {data.stages.length}
+          </div>
+          <div className="kb-stage-title">{stage.name}</div>
+          <div className="kb-card-sub">{stage.description}</div>
+        </div>
+        <Group gap={6} wrap="nowrap" className="kb-stage-nav">
+          <Button
+            size="xs"
+            variant="default"
+            disabled={!prev}
+            onClick={() => prev && onSelect(prev.id)}
+            aria-label={prev ? `Предыдущий этап: ${prev.name}` : 'Предыдущего этапа нет'}
+          >
+            <IconArrowNarrowRight size={16} style={{ transform: 'scaleX(-1)' }} />
+          </Button>
+          <Button
+            size="xs"
+            variant="default"
+            disabled={!next}
+            onClick={() => next && onSelect(next.id)}
+            aria-label={next ? `Следующий этап: ${next.name}` : 'Следующего этапа нет'}
+          >
+            <IconArrowNarrowRight size={16} />
+          </Button>
+        </Group>
       </div>
+
+      <div className="kb-stage-facts">
+        <span>
+          <IconUsers size={14} aria-hidden />
+          {stage.department}
+        </span>
+        {limits && (
+          <span>
+            <IconTemperature size={14} aria-hidden />
+            {limits}
+            {chilledLimits && chilledLimits !== limits ? ` · охлаждённая ${chilledLimits}` : ''}
+          </span>
+        )}
+        {term && (
+          <span>
+            <IconClockHour4 size={14} aria-hidden />
+            {term}
+          </span>
+        )}
+        {rooms.map((r) => {
+          const st = roomState(r);
+          return (
+            <span key={r.id} data-bad={!st.ok || undefined}>
+              <span className="kb-live" aria-hidden />
+              {r.name}: {fmtTemp(st.current)}
+            </span>
+          );
+        })}
+        <span>
+          <b>{fmt(lots.length)}</b> {lotsWord(lots.length)} · {fmt(Math.round(kg))} кг
+        </span>
+      </div>
+
       {lots.length === 0 ? (
         <Empty text="На этом этапе сейчас ничего нет" />
       ) : (
@@ -245,62 +254,7 @@ function StageLots({ data, stageId, onOpen }: { data: TraceOverview; stageId: St
       )}
     </div>
   );
-}
-
-// ---------- холодильные камеры ----------
-
-function Sparkline({ room }: { room: ColdRoom }) {
-  const w = 120;
-  const h = 32;
-  const values = room.readings;
-  const lo = Math.min(room.min, ...values) - 0.5;
-  const hi = Math.max(room.max, ...values) + 0.5;
-  const y = (v: number) => h - ((v - lo) / (hi - lo)) * h;
-  const x = (i: number) => (i / Math.max(1, values.length - 1)) * w;
-  const points = values.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="kb-spark" aria-hidden>
-      {/* полоса нормы */}
-      <rect x={0} y={y(room.max)} width={w} height={y(room.min) - y(room.max)} className="kb-spark-band" />
-      <polyline points={points} fill="none" className="kb-spark-line" />
-    </svg>
-  );
-}
-
-function ColdRooms({ rooms }: { rooms: ColdRoom[] }) {
-  return (
-    <div className="kb-card">
-      <div className="kb-card-title">Холодильные камеры</div>
-      <div className="kb-card-sub">Датчики, последние 3 часа. Выход за норму — сразу оповещение в Telegram.</div>
-      <Stack gap={0} mt="xs">
-        {rooms.map((r) => {
-          const s = roomState(r);
-          return (
-            <div key={r.id} className={`kb-room-temp${s.ok ? '' : ' bad'}`}>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <Text size="sm" fw={600} truncate>
-                  {r.name}
-                </Text>
-                <Text size="xs" c="dimmed">
-                  Норма {rangeText(r.min, r.max)}
-                </Text>
-              </div>
-              <Sparkline room={r} />
-              <div className="kb-room-temp-value">
-                {fmtTemp(s.current)}
-                {!s.ok && (
-                  <Text size="xs" c="red" fw={600}>
-                    Вне нормы
-                  </Text>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </Stack>
-    </div>
-  );
-}
+});
 
 // ---------- карточка партии и сканирование ----------
 
@@ -656,6 +610,16 @@ export function TraceabilityPage() {
   const overview = useTraceOverview();
   const [stageId, setStageId] = useState<StageId>('aging');
   const [lotId, setLotId] = useState<string | null>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  /** Из плитки камеры: выбрать её этап и показать партии. Прокрутка — по действию, без анимации при reduced motion. */
+  const showStage = (id: StageId) => {
+    setStageId(id);
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    requestAnimationFrame(() =>
+      panel.current?.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' }),
+    );
+  };
 
   if (overview.isPending) return <Loading height={240} />;
   if (overview.isError) return <ErrorState error={overview.error} onRetry={() => void overview.refetch()} />;
@@ -698,12 +662,18 @@ export function TraceabilityPage() {
 
       <QrSearch data={data} onFound={setLotId} />
 
-      <FlowBoard data={data} selected={stageId} onSelect={setStageId} />
+      <ProcessMap data={data} selected={stageId} onSelect={setStageId} />
 
-      <div className="kb-video-bottom">
-        <StageLots data={data} stageId={stageId} onOpen={(l) => setLotId(l.id)} />
-        <ColdRooms rooms={data.rooms} />
-      </div>
+      <StageLots
+        key={stageId}
+        ref={panel}
+        data={data}
+        stageId={stageId}
+        onOpen={(l) => setLotId(l.id)}
+        onSelect={setStageId}
+      />
+
+      <ColdRooms data={data} updatedAt={overview.dataUpdatedAt} onShowStage={showStage} />
 
       <HandoffLog data={data} onOpen={setLotId} />
 
